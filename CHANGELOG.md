@@ -1,3 +1,9 @@
+## Unreleased
+
+* iOS: a screen covered by another route (a pushed page, a modal bottom
+  sheet) no longer catches drags meant for the route on top. Its drag region
+  is dropped while it's covered and comes back when it's on top again.
+
 ## 0.1.2
 
 * Homepage and README now link to the package's documentation page on flutterdev.in. No code changes.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -571,6 +573,26 @@ void main() {
     expect(last['height'], kScreenHeight);
     await tester.pumpWidget(const SizedBox());
     expect(h.regions.last.containsKey('left'), isFalse);
+  }, variant: ios);
+
+  testWidgets('iOS drops the region while another route covers it', (
+    WidgetTester tester,
+  ) async {
+    final _Harness h = _Harness(tester);
+    await h.pump();
+    await tester.pump();
+    expect(h.regions.last.containsKey('left'), isTrue);
+
+    final NavigatorState navigator = tester.state(find.byType(Navigator));
+    unawaited(
+      navigator.push(MaterialPageRoute<void>(builder: (_) => const Scaffold())),
+    );
+    await tester.pumpAndSettle();
+    expect(h.regions.last.containsKey('left'), isFalse);
+
+    navigator.pop();
+    await tester.pumpAndSettle();
+    expect(h.regions.last.containsKey('left'), isTrue);
   }, variant: ios);
 
   testWidgets(

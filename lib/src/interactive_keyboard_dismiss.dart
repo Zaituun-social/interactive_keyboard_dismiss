@@ -667,6 +667,9 @@ class _InteractiveKeyboardDismissState extends State<InteractiveKeyboardDismiss>
   bool get _usesRegions =>
       _active && defaultTargetPlatform == TargetPlatform.iOS;
 
+  /// Whether this widget's route is the one on top (true outside a route).
+  bool get _onTopRoute => ModalRoute.isCurrentOf(context) ?? true;
+
   /// Tells the platform where this widget is on screen (iOS only), after the
   /// current frame is laid out.
   void _scheduleRegionSync() {
@@ -680,7 +683,10 @@ class _InteractiveKeyboardDismissState extends State<InteractiveKeyboardDismiss>
 
   void _syncRegion() {
     Rect? rect;
-    if (_usesRegions) {
+    // Only the route on top may start a drag. A screen covered by another
+    // route (a pushed page, a modal sheet) stays mounted, so without this its
+    // region would keep catching drags meant for the route above.
+    if (_usesRegions && _onTopRoute) {
       final RenderObject? box = context.findRenderObject();
       if (box is RenderBox && box.hasSize && box.attached) {
         rect = box.localToGlobal(Offset.zero) & box.size;
@@ -695,6 +701,9 @@ class _InteractiveKeyboardDismissState extends State<InteractiveKeyboardDismiss>
 
   @override
   Widget build(BuildContext context) {
+    // Rebuilds when another route covers or uncovers this one, so the region
+    // follows.
+    ModalRoute.isCurrentOf(context);
     _scheduleRegionSync();
     // The widget structure never depends on [enabled], [adjustMediaQuery] or
     // the phase, so toggling them never remounts (and resets) the child.
